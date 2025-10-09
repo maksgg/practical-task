@@ -1,144 +1,84 @@
 "use strict"
 
-async function users(url) {
-  const response = await fetch(url);
+const url = 'https://jsonplaceholder.typicode.com/';
+
+const getData = async (type) => {
+  const response = await fetch(url + type);
   const data = await response.json();
 
-  // console.log(data);
-
-  const numberOfAllUsers = () => data.length;
-  
-  console.log(numberOfAllUsers());
-
-  const names = () => {
-    let result = [];
-
-    for(const el of data) {
-      result.push(el.name);
-    }
-
-    return result;
-  };
-
-  console.log(names());
-
-  const nUsers = (n) => data.slice(0, n);
-
-  console.log(nUsers(2));
-
-  
-  const findByName = (name) => {
-    const allNames = names();
-    
-    return allNames.find(el => el === name);
-  };
-
-  console.log(findByName('Leanne Graham'));
+  if(type === 'users') { 
+    console.log(names(data));
+    console.log(nUsers(2, data));
+    console.log(findByName('Leanne Graham', names(data)));
+  }
+  else if(type === 'posts') {
+    console.log(nTitles(2, data));
+    console.log(userPost(2, data));
+  }
+  else if(type === 'todos') {
+    console.log(completedTasks(data));
+  }
 }
+getData('users');
+getData('posts');
+getData('todos');
 
-users('https://jsonplaceholder.typicode.com/users');
-
-async function post(url) {
-  const response = await fetch(url);
-  const data = await response.json();
-
-  // console.log(data);
-
-  const nTitles = (n) => data.slice(0, n).map(el => el.title);
-
-  console.log(nTitles(2));
-
-  const userPost = (userId) => {
-    for(const el of data) {
-      if(el.id === userId) {
-        return el.body;
-      }
-    }
-  };
-
-  console.log(userPost(100));
-}
-
-post('https://jsonplaceholder.typicode.com/posts');
-
-async function todos(url) {
-  const response = await fetch(url);
-  const data = await response.json();
-
-  console.log(data);
-
-  const completedTasks = () => data.filter(el => el.completed === true);
-
-  console.log(completedTasks());
-}
-todos('https://jsonplaceholder.typicode.com/todos');
-
-
-async function tinyAnalytics(arrOfUrls) {
-  const fetchPromises = arrOfUrls.map(el => 
-    fetch(el).then(res => res.json())
+const getAllData = async (...types) => {
+  const fetchPromises = [...types].map(el =>
+    fetch(url + el).then(res => res.json())
   );
-  const [usersData, postsData] = await Promise.all(fetchPromises);
+  const [usersData, postsData] = await Promise.allSettled(fetchPromises);
 
-  // console.log(usersData);
-  // console.log(postsData);
-
-  const numOfUsersPosts = () => {
-    let counter = 0;
-    let arr = [];
-    let obj = {};
-    
-      for(let i = 0; i <= postsData.length - 1; i++) {
-        if(!obj.userId) {
-          obj.userId = postsData[i].userId;
-          counter = 1;
-        } 
-        else if(postsData[i].userId === obj.userId) {
-          counter += 1
-        }
-        else if(obj.userId !== postsData[i].userId) {
-          obj.numberOfPosts = counter;
-          arr.push(obj);
-          obj = {};
-          obj.userId = postsData[i].userId;
-          counter = 1;
-        }
-      }
-
-      obj.numberOfPosts = counter;
-      arr.push(obj);
-      
-      return arr;
-
-  };
-
-  console.log(numOfUsersPosts());
-
-  const combination = (userId) => {
-    let result = {};
-
-    for(const user of usersData) {
-      if(user.id === userId) {
-        result.name = user.name;
-      }
-    }
-
-    for(const el of numOfUsersPosts()) {
-      if(el.userId === userId) {
-        result.numberOfPosts = el.numberOfPosts;
-      }
-    }
-
-    return result;
-  };
-
-  console.log(combination(1));
-  
+  console.log(numOfUsersPosts(postsData.value));
+  console.log(combination(2, usersData.value, postsData.value));
 }
+getAllData('users', 'posts');
 
-const fetchUrs = [
-  'https://jsonplaceholder.typicode.com/users',
-  'https://jsonplaceholder.typicode.com/posts'
-];
+const names = (data) => data.map(el => el.name);
 
-tinyAnalytics(fetchUrs);
+const nUsers = (n, data) => data.slice(0, n);
+  
+const findByName = (name, allNames) => allNames.find(el => el === name);
+
+const nTitles = (n, data) => data.slice(0, n).map(el => el.title);
+
+const userPost = (userId, data) => data.find(el => el.userId === userId)?.body;
+
+const completedTasks = (data) => data.filter(el => el.completed === true);
+ 
+const numOfUsersPosts = (data) => {
+  let counter = 0;
+  const arr = [];
+  let obj = {};
+  
+    for(let i = 0; i <= data.length - 1; i++) {
+      if(!obj.userId) {
+        obj.userId = data[i].userId;
+        counter = 1;
+      } 
+      else if(data[i].userId === obj.userId) {
+        counter += 1
+      }
+      else if(obj.userId !== data[i].userId) {
+        obj.numberOfPosts = counter;
+        arr.push(obj);
+        obj = {};
+        obj.userId = data[i].userId;
+        counter = 1;
+      }
+    }
+
+  obj.numberOfPosts = counter;
+  arr.push(obj);
+    
+  return arr;
+};
+const combination = (userId, usersData, postsData) => {
+  let result = {};
+  const postData = numOfUsersPosts(postsData);
+  
+  result.name = usersData.find(el => el.id === userId)?.name;
+  result.numberOfPosts = postData.find(el => el.userId === userId)?.numberOfPosts;
+
+  return result;
+};
