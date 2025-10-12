@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "rootDir": "./types",
+    "outDir": "./script",
+    "target": "ESNext",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+  }
+}

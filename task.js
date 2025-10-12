@@ -1,4 +1,5 @@
 "use strict"
+import chalk from 'chalk';
 
 const url = 'https://jsonplaceholder.typicode.com/';
 
@@ -6,18 +7,23 @@ const getData = async (type) => {
   const response = await fetch(url + type);
   const data = await response.json();
 
-  if(type === 'users') { 
-    console.log(names(data));
-    console.log(nUsers(2, data));
-    console.log(findByName('Leanne Graham', names(data)));
+  const result = [];
+
+  if(type === 'users') {
+    result.push(names(data));
+    result.push(nUsers(2, data));
+    result.push(findByName('Leanne Graham', names(data)));
   }
   else if(type === 'posts') {
-    console.log(nTitles(2, data));
-    console.log(userPost(2, data));
+    console.log(data)
+    result.push(nTitles(2, data));
+    result.push(userPost(2, data));
   }
   else if(type === 'todos') {
-    console.log(completedTasks(data));
+    result.push(completedTasks(data));
   }
+
+  console.log(result);
 }
 getData('users');
 getData('posts');
@@ -74,7 +80,7 @@ const numOfUsersPosts = (data) => {
   return arr;
 };
 const combination = (userId, usersData, postsData) => {
-  let result = {};
+  const result = {};
   const postData = numOfUsersPosts(postsData);
   
   result.name = usersData.find(el => el.id === userId)?.name;
