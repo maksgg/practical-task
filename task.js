@@ -1,5 +1,4 @@
 "use strict"
-import chalk from 'chalk';
 
 const url = 'https://jsonplaceholder.typicode.com/';
 
